@@ -6,8 +6,8 @@ use crate::{value_objects::{Point, Dimension}, entity::Entity};
 
 /// Data representing a single UML classifier (like a class, interface etc).
 /// Leaking abstraction here as it also contains persistence information (name of collection)
-#[derive(Debug, Serialize, Deserialize, Collection)]
-#[collection(name="classifiers", primary_key = String)]
+#[derive(Debug, Serialize, Deserialize, Collection, Default)]
+#[collection(name="classifiers", primary_key = u64)]
 pub struct Classifier {
     pub name: String,
     pub position: Point,

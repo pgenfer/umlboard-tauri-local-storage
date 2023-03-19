@@ -5,7 +5,7 @@
 
 use action_handler::ActionHandler;
 use bonsai_repository::BonsaiRepository;
-use bonsaidb::{local::{config::{StorageConfiguration, Builder}, Storage, Database}, core::connection::StorageConnection};
+use bonsaidb::{local::{config::{StorageConfiguration, Builder}, Storage, Database}, core::{connection::StorageConnection, schema::SerializedCollection}};
 use classifier::Classifier;
 // use data_model::{save_classifier_polo, get_classifiers};
 use repository::Repository;
@@ -27,24 +27,26 @@ use std::string::ToString;
 
 use classifier_service::ClassifierService;
 
-#[tauri::command]
-fn ipc_message(message: IpcMessage) -> IpcMessage {
+use crate::value_objects::Point;
+
+//#[tauri::command]
+//fn ipc_message(message: IpcMessage) -> IpcMessage {
 
     // Normally, we would have some kind of dictionary 
     // with our services created during startup.
     // In this example, we just create everything in place here for simplifaction
-    let service = ClassifierService{};
-    let mut handlers = HashMap::new();
-    handlers.insert(service.domain(), &service);
+    // let service = ClassifierService{};
+    // let mut handlers = HashMap::new();
+    // handlers.insert(service.domain(), &service);
     
-    // this is were our actual command begins
-    let message_handler = handlers.get(&*message.domain).unwrap(); 
-    let response = message_handler.receive_action(message.action).unwrap();
-    IpcMessage {
-        domain: message_handler.domain().to_string(),
-        action: response
-    }
-}
+    // // this is were our actual command begins
+    // let message_handler = handlers.get(&*message.domain).unwrap(); 
+    // let response = message_handler.receive_action(message.action).unwrap();
+    // IpcMessage {
+    //     domain: message_handler.domain().to_string(),
+    //     action: response
+    // }
+//}
 
 fn main() {
 
@@ -54,9 +56,23 @@ fn main() {
 
     let db = Database::open::<Classifier>(
         StorageConfiguration::new("testdata/umlboard.bonsaidb")).unwrap();
+    
+    // let result = Classifier {
+    //     name: "test".to_string(),
+    //     position: Point{x: 0.0, y: 0.0},
+    //     custom_dimension: None
+    // }.push_into(&db).unwrap();
+
     let classifier_repository = BonsaiRepository::<Classifier>::new(db);
-    let classifiers = classifier_repository.query_all();
+   
+    let classifier_service = ClassifierService::new(classifier_repository);
+    let mut classifiers = classifier_service.load_classifiers();
+    if classifiers.len() == 0 {
+        classifier_service.create_new_classifier("new class");
+        classifiers = classifier_service.load_classifiers();
+    }
     print!("{:?}", classifiers);
+    
 
 
     // poloDB test
@@ -90,7 +106,7 @@ fn main() {
 
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![ipc_message])
+        // .invoke_handler(tauri::generate_handler![ipc_message])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

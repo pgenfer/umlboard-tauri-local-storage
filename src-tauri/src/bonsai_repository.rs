@@ -20,7 +20,7 @@ impl <TData> BonsaiRepository<TData> {
 /// To make this conversion possible, we need to constraint the type parameter.
 /// Note that the PK is constrained to a string, as we did in the Classifier definition
 impl <TData> Repository<TData> for BonsaiRepository<TData> 
-    where TData: SerializedCollection<Contents = TData> + Collection<PrimaryKey = String> {
+    where TData: SerializedCollection<Contents = TData> + Collection<PrimaryKey = u64> + 'static {
     
     fn query_all(&self) -> Vec<Entity<TData>> {
         let result_documents = TData::all(&self.db).query().unwrap();
@@ -29,6 +29,14 @@ impl <TData> Repository<TData> for BonsaiRepository<TData>
             content: f.contents
         }).collect();
         result_entities
+    }
+
+    fn insert(&self, data: TData) -> Entity<TData> {
+        let new_document = data.push_into(&self.db).unwrap();
+        Entity::<TData>{
+            id: new_document.header.id,
+            content: new_document.contents
+        }
     }
 }
 
