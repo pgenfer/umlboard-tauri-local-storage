@@ -24,7 +24,7 @@ impl <TData> Repository<TData> for BonsaiRepository<TData>
     
     fn query_all(&self) -> Vec<Entity<TData>> {
         let result_documents = TData::all(&self.db).query().unwrap();
-        let result_entities: Vec<_> = result_documents.iter().map(|f| Entity::<TData>{
+        let result_entities: Vec<_> = result_documents.into_iter().map(|f| Entity::<TData>{
             id: f.header.id, 
             content: f.contents
         }).collect();

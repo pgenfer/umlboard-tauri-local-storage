@@ -7,7 +7,7 @@ use action_handler::ActionHandler;
 use bonsai_repository::BonsaiRepository;
 use bonsaidb::{local::{config::{StorageConfiguration, Builder}, Storage, Database}, core::connection::StorageConnection};
 use classifier::Classifier;
-use data_model::{save_classifier_polo, get_classifiers};
+// use data_model::{save_classifier_polo, get_classifiers};
 use repository::Repository;
 
 mod classifier_service;
@@ -48,6 +48,17 @@ fn ipc_message(message: IpcMessage) -> IpcMessage {
 
 fn main() {
 
+    // DB test:
+    // 1. read all elements from the DB
+    // 2. if there is no element, create a new one
+
+    let db = Database::open::<Classifier>(
+        StorageConfiguration::new("testdata/umlboard.bonsaidb")).unwrap();
+    let classifier_repository = BonsaiRepository::<Classifier>::new(db);
+    let classifiers = classifier_repository.query_all();
+    print!("{:?}", classifiers);
+
+
     // poloDB test
     // let db = Database::open_file("umlboard.polo").unwrap();
     // save_classifier_polo(&db);
@@ -62,10 +73,7 @@ fn main() {
     // storage.create_database::<Classifier>("default", true).unwrap();
     // let db = storage.database::<Classifier>("default").unwrap();
 
-    let db = Database::open::<Classifier>(
-        StorageConfiguration::new("umlboard.bonsaidb")).unwrap();
-    let classifier_repository = BonsaiRepository::<Classifier>::new(db);
-    classifier_repository.query_all();
+    
         
     
     // let classifier = data_model::save_classifier(&db).unwrap();

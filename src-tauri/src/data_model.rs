@@ -19,50 +19,50 @@ We could implement an additional ID trait with two methods, get and set
 */
 
 
-pub fn test() {
-    let data = Classifier{
-        name: "test".to_string(),
-        position: Point{x: 0.0, y: 0.0},
-        custom_dimension: None
-    };
-    let test = ClassifierEntity{
-        id: "123".to_string(),
-        content: data
-    };
-}
+// pub fn test() {
+//     let data = Classifier{
+//         name: "test".to_string(),
+//         position: Point{x: 0.0, y: 0.0},
+//         custom_dimension: None
+//     };
+//     let test = ClassifierEntity{
+//         id: "123".to_string(),
+//         content: data
+//     };
+// }
 
-pub fn save_classifier(db: &Database) -> Result<CollectionDocument<Classifier>, Error> {
-    let classifier = Classifier {
-        custom_dimension: None,
-        name: "Class 1".to_string(),
-        position: Point {x: 0.0, y: 0.0}
-    }.push_into(db)?;
-    return Ok(classifier);
-}
+// pub fn save_classifier(db: &Database) -> Result<CollectionDocument<Classifier>, Error> {
+//     let classifier = Classifier {
+//         custom_dimension: None,
+//         name: "Class 1".to_string(),
+//         position: Point {x: 0.0, y: 0.0}
+//     }.push_into(db)?;
+//     return Ok(classifier);
+// }
 
-pub fn change_name(id: u64, new_name: String, db: &Database) -> Result<CollectionDocument<Classifier>, Error> {
-    let mut classifier = Classifier::get(id, db).unwrap().unwrap();
-    classifier.contents.name = new_name;
-    classifier.update(db).unwrap();
-    return Ok(classifier);
-}
+// pub fn change_name(id: u64, new_name: String, db: &Database) -> Result<CollectionDocument<Classifier>, Error> {
+//     let mut classifier = Classifier::get(id, db).unwrap().unwrap();
+//     classifier.contents.name = new_name;
+//     classifier.update(db).unwrap();
+//     return Ok(classifier);
+// }
 
-pub fn save_classifier_polo(db: &polodb_core::Database) {
-    let collection = db.collection("classifiers");
-    let result = collection.insert_one(Classifier {
-        custom_dimension: None,
-        name: "Class 1".to_string(),
-        position: Point {x: 0.0, y: 0.0}
-    }).unwrap();
-    print!("{}", result.inserted_id);
-}
+// pub fn save_classifier_polo(db: &polodb_core::Database) {
+//     let collection = db.collection("classifiers");
+//     let result = collection.insert_one(Classifier {
+//         custom_dimension: None,
+//         name: "Class 1".to_string(),
+//         position: Point {x: 0.0, y: 0.0}
+//     }).unwrap();
+//     print!("{}", result.inserted_id);
+// }
 
-pub fn get_classifiers(db: &polodb_core::Database) {
-    let collection = db.collection::<Document>("classifiers");
-    let classifiers = collection.find_many(doc! {}).unwrap();
-    print!("{:?}", classifiers[0].get_object_id("_id"));
-    let document = classifiers[0].to_owned();
-    let classifier = bson::from_document::<Classifier>(document).unwrap();
-    print!("{}", classifier.name);
-    print!("{:?}", classifiers);
-}
+// pub fn get_classifiers(db: &polodb_core::Database) {
+//     let collection = db.collection::<Document>("classifiers");
+//     let classifiers = collection.find_many(doc! {}).unwrap();
+//     print!("{:?}", classifiers[0].get_object_id("_id"));
+//     let document = classifiers[0].to_owned();
+//     let classifier = bson::from_document::<Classifier>(document).unwrap();
+//     print!("{}", classifier.name);
+//     print!("{:?}", classifiers);
+// }
