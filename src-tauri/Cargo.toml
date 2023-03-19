@@ -20,6 +20,8 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = {version = "1.2", features = ["api-all"] }
 strum = "0.24.1"
 strum_macros = "0.24"
+bonsaidb = { version = "*", features = ["local-full"] }
+polodb_core = "3.5.2"
 
 [features]
 # by default Tauri runs in production mode
