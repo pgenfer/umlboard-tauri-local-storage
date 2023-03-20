@@ -29,12 +29,12 @@ pub enum ClassifierAction {
 // this will also be generated for redux to use a slice name
 pub const CLASSIFIER_DOMAIN: &str = "classifier";
 
-pub struct ClassifierService {
-    repository : Box<dyn Repository<Classifier>>
+pub struct ClassifierService<'a> {
+    repository : &'a dyn Repository<Classifier>
 }
-impl ClassifierService {
+impl<'a> ClassifierService<'a> {
     
-    pub fn new(classifier_repository: Box<dyn Repository<Classifier>>) -> Self { 
+    pub fn new(classifier_repository: &'a dyn Repository<Classifier>) -> Self { 
         Self { repository: classifier_repository } 
     }
 
@@ -48,7 +48,7 @@ impl ClassifierService {
 
     pub fn update_classifier_name(&self, new_name: &str) -> () {/* TODO: implement */}
 }
-impl ActionHandler for ClassifierService {
+impl ActionHandler for ClassifierService<'_> {
     type TActionType = ClassifierAction;
 
     fn domain(&self) -> &str { CLASSIFIER_DOMAIN}
