@@ -34,8 +34,8 @@ pub struct ClassifierService {
 }
 impl ClassifierService {
     
-    pub fn new(classifier_repository: impl Repository<Classifier> + 'static) -> Self { 
-        Self { repository: Box::new(classifier_repository) } 
+    pub fn new(classifier_repository: Box<dyn Repository<Classifier>>) -> Self { 
+        Self { repository: classifier_repository } 
     }
 
     pub fn load_classifiers(&self) -> Vec<ClassifierEntity> {

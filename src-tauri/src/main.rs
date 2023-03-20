@@ -64,8 +64,8 @@ fn main() {
     // }.push_into(&db).unwrap();
 
     let classifier_repository = BonsaiRepository::<Classifier>::new(db);
-   
-    let classifier_service = ClassifierService::new(classifier_repository);
+    let classifier_repository_box = Box::new(classifier_repository);
+    let classifier_service = ClassifierService::new(classifier_repository_box);
     let mut classifiers = classifier_service.load_classifiers();
     if classifiers.len() == 0 {
         classifier_service.create_new_classifier("new class");
