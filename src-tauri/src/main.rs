@@ -5,7 +5,7 @@
 
 use action_handler::ActionHandler;
 use bonsai_repository::BonsaiRepository;
-use bonsaidb::{local::{config::{StorageConfiguration, Builder}, Storage, Database}, core::{connection::StorageConnection, schema::SerializedCollection}};
+use bonsaidb::{local::{config::{StorageConfiguration, Builder}, Storage, Database}, core::{connection::{StorageConnection, Connection}, schema::SerializedCollection}};
 use classifier::Classifier;
 // use data_model::{save_classifier_polo, get_classifiers};
 use repository::Repository;
@@ -18,6 +18,7 @@ mod value_objects;
 mod entity;
 mod bonsai_repository;
 mod repository;
+mod polo_repository;
 
 use std::{string::String, collections::HashMap, path::{Path, PathBuf}};
 // use bonsaidb::{local::{Database, config::{StorageConfiguration, Builder}, Storage}, core::connection::StorageConnection};
@@ -56,20 +57,24 @@ fn main() {
 
     let db = Database::open::<Classifier>(
         StorageConfiguration::new("testdata/umlboard.bonsaidb")).unwrap();
-    
+
     // let result = Classifier {
     //     name: "test".to_string(),
     //     position: Point{x: 0.0, y: 0.0},
     //     custom_dimension: None
     // }.push_into(&db).unwrap();
 
-    let classifier_repository = BonsaiRepository::<Classifier>::new(db);
+    let classifier_repository = BonsaiRepository::<Classifier>::new(&db);
     let classifier_service = ClassifierService::new(&classifier_repository);
     let mut classifiers = classifier_service.load_classifiers();
     if classifiers.len() < 2 {
         classifier_service.create_new_classifier("new class");
         classifiers = classifier_service.load_classifiers();
     }
+    let id = classifiers[0].id;
+    classifier_service.update_classifier_name(id, "changed name44");
+    classifiers = classifier_service.load_classifiers();
+
     print!("{:?}", classifiers);
     
 

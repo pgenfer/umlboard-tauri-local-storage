@@ -43,10 +43,17 @@ impl<'a> ClassifierService<'a> {
     }
 
     pub fn create_new_classifier(&self, new_name: &str) -> ClassifierEntity { // TODO: use repository error
-        self.repository.insert(Classifier{name: new_name.to_string(), ..Default::default()})
+        self.repository.insert(Classifier{name: new_name.to_string(), isInterface: false, ..Default::default()})
+    }
+    
+    pub fn update_classifier_name(&self, id: u64, new_name: &str) -> ClassifierEntity {
+        let mut classifier = self.repository.query_by_id(id).unwrap();
+        classifier.content.name = new_name.to_string();
+        let updated = self.repository.edit(classifier.id, classifier.content).unwrap();
+        updated
     }
 
-    pub fn update_classifier_name(&self, new_name: &str) -> () {/* TODO: implement */}
+    
 }
 impl ActionHandler for ClassifierService<'_> {
     type TActionType = ClassifierAction;
@@ -55,7 +62,7 @@ impl ActionHandler for ClassifierService<'_> {
     fn handle_action(&self, action: Self::TActionType) -> Result<Self::TActionType, serde_json::Error> {
         let response = match action {
             ClassifierAction::RenameClassifier(data) => {
-                self.update_classifier_name(&data.new_name);
+                // self.update_classifier_name(&data.new_name);
                 ClassifierAction::ClassifierRenamed(data)
             },
             ClassifierAction::CancelClassifierRename =>
