@@ -46,10 +46,10 @@ impl<'a> ClassifierService<'a> {
         self.repository.insert(Classifier{name: new_name.to_string(), isInterface: false, ..Default::default()})
     }
     
-    pub fn update_classifier_name(&self, id: u64, new_name: &str) -> ClassifierEntity {
+    pub fn update_classifier_name(&self, id: &str, new_name: &str) -> ClassifierEntity {
         let mut classifier = self.repository.query_by_id(id).unwrap();
         classifier.content.name = new_name.to_string();
-        let updated = self.repository.edit(classifier.id, classifier.content).unwrap();
+        let updated = self.repository.edit(&classifier.id, classifier.content).unwrap();
         updated
     }
 

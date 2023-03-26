@@ -1,8 +1,10 @@
 use std::marker::PhantomData;
 
-use bonsaidb::{core::{schema::{Collection, SerializedCollection}}, local::Database};
+use bonsaidb::{core::{schema::{Collection, SerializedCollection}, key::Key}, local::Database};
 
 use crate::{repository::Repository, entity::Entity};
+
+
 
 pub struct BonsaiRepository<'a, TData> {
     db: &'a Database,
@@ -20,12 +22,12 @@ impl <'a, TData> BonsaiRepository<'a, TData> {
 /// To make this conversion possible, we need to constraint the type parameter.
 /// Note that the PK is constrained to a string, as we did in the Classifier definition
 impl <'a, TData> Repository<TData> for BonsaiRepository<'a, TData> 
-    where TData: SerializedCollection<Contents = TData> + Collection<PrimaryKey = u64> + 'static {
+    where TData: SerializedCollection<Contents = TData> + Collection<PrimaryKey = String> + 'static {
     
     fn query_all(&self) -> Vec<Entity<TData>> {
         let result_documents = TData::all(self.db).query().unwrap();
         let result_entities: Vec<_> = result_documents.into_iter().map(|f| Entity::<TData>{
-            id: f.header.id, 
+            id: f.header.id.to_string(), 
             content: f.contents
         }).collect();
         result_entities
@@ -34,26 +36,26 @@ impl <'a, TData> Repository<TData> for BonsaiRepository<'a, TData>
     fn insert(&self, data: TData) -> Entity<TData> {
         let new_document = data.push_into(self.db).unwrap();
         Entity::<TData>{
-            id: new_document.header.id,
+            id: new_document.header.id.to_string(),
             content: new_document.contents
         }
     }
 
-    fn edit(&self, id: u64, data: TData) -> Option<Entity<TData>> {
+    fn edit(&self, id: &str, data: TData) -> Option<Entity<TData>> {
         // overwrite creates new document if not there, so it always returns a document
         // maybe we should change our API?
         let updated_document = TData::overwrite(id, data, self.db).unwrap();
         Some(Entity::<TData>{
-            id,
+            id: updated_document.header.id,
             content: updated_document.contents
         })
     }
 
-    fn query_by_id(&self, id: u64) -> Option<Entity<TData>> {
-        let document = TData::get(id, self.db).unwrap();
+    fn query_by_id(&self, id: &str) -> Option<Entity<TData>> {
+        let document = TData::get(id, self.db).unwrap().unwrap();
         Some(Entity::<TData>{
-            id,
-            content: document.unwrap().contents
+            id: document.header.id,
+            content: document.contents
         })
     }
 }

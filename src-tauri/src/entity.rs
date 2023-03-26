@@ -3,6 +3,6 @@
 /// but instead will be returned by the repository
 #[derive(Debug)]
 pub struct Entity<T> {
-    pub id: u64,
+    pub id: String,
     pub content: T
 }
