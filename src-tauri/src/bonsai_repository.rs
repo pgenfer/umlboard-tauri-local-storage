@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
-use bonsaidb::{core::{schema::{Collection, SerializedCollection}, key::Key}, local::Database};
+use bonsaidb::{core::{schema::{Collection, SerializedCollection}}, local::Database};
 
-use crate::{repository::Repository, entity::Entity};
+use crate::{repository::Repository};
 
 
 
@@ -24,39 +24,27 @@ impl <'a, TData> BonsaiRepository<'a, TData> {
 impl <'a, TData> Repository<TData> for BonsaiRepository<'a, TData> 
     where TData: SerializedCollection<Contents = TData> + Collection<PrimaryKey = String> + 'static {
     
-    fn query_all(&self) -> Vec<Entity<TData>> {
+    fn query_all(&self) -> Vec<TData> {
         let result_documents = TData::all(self.db).query().unwrap();
-        let result_entities: Vec<_> = result_documents.into_iter().map(|f| Entity::<TData>{
-            id: f.header.id.to_string(), 
-            content: f.contents
-        }).collect();
+        let result_entities: Vec<_> = result_documents.into_iter().map(|f| f.contents).collect();
         result_entities
     }
 
-    fn insert(&self, data: TData) -> Entity<TData> {
+    fn insert(&self, data: TData) -> TData {
         let new_document = data.push_into(self.db).unwrap();
-        Entity::<TData>{
-            id: new_document.header.id.to_string(),
-            content: new_document.contents
-        }
+        new_document.contents
     }
 
-    fn edit(&self, id: &str, data: TData) -> Option<Entity<TData>> {
+    fn edit(&self, id: &str, data: TData) -> Option<TData> {
         // overwrite creates new document if not there, so it always returns a document
         // maybe we should change our API?
         let updated_document = TData::overwrite(id, data, self.db).unwrap();
-        Some(Entity::<TData>{
-            id: updated_document.header.id,
-            content: updated_document.contents
-        })
+        Some(updated_document.contents)
     }
 
-    fn query_by_id(&self, id: &str) -> Option<Entity<TData>> {
+    fn query_by_id(&self, id: &str) -> Option<TData> {
         let document = TData::get(id, self.db).unwrap().unwrap();
-        Some(Entity::<TData>{
-            id: document.header.id,
-            content: document.contents
-        })
+        Some(document.contents)
     }
 }
 

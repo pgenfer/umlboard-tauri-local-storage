@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 use polodb_core::{self, bson::{doc, Document, self}};
 
-use crate::{classifier::{Classifier, ClassifierEntity}, value_objects::Point};
+use crate::{classifier::{Classifier}, value_objects::Point};
 
 
 

@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use strum_macros::Display;
 use ts_rs::TS;
 
-use crate::{action_handler::ActionHandler, repository::Repository, classifier::{Classifier, ClassifierEntity}};
+use crate::{action_handler::ActionHandler, repository::Repository, classifier::{Classifier}};
 
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export, rename_all="camelCase")]
@@ -38,18 +38,20 @@ impl<'a> ClassifierService<'a> {
         Self { repository: classifier_repository } 
     }
 
-    pub fn load_classifiers(&self) -> Vec<ClassifierEntity> {
+    pub fn load_classifiers(&self) -> Vec<Classifier> {
         self.repository.query_all()
     }
 
-    pub fn create_new_classifier(&self, new_name: &str) -> ClassifierEntity { // TODO: use repository error
-        self.repository.insert(Classifier{name: new_name.to_string(), isInterface: false, ..Default::default()})
+    pub fn create_new_classifier(&self, new_name: &str) -> Classifier { // TODO: use repository error
+        let id = uuid::Uuid::new_v4().to_string();
+        self.repository.insert(Classifier{_id: id, name: new_name.to_string(), is_interface: false, ..Default::default()})
     }
     
-    pub fn update_classifier_name(&self, id: &str, new_name: &str) -> ClassifierEntity {
+    pub fn update_classifier_name(&self, id: &str, new_name: &str) -> Classifier {
         let mut classifier = self.repository.query_by_id(id).unwrap();
-        classifier.content.name = new_name.to_string();
-        let updated = self.repository.edit(&classifier.id, classifier.content).unwrap();
+        classifier.name = new_name.to_string();
+        let id = classifier._id.to_owned();
+        let updated = self.repository.edit(&id, classifier).unwrap();
         updated
     }
 

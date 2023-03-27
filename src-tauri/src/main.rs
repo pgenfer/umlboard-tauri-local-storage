@@ -28,7 +28,7 @@ use std::string::ToString;
 
 use classifier_service::ClassifierService;
 
-use crate::{value_objects::Point, polo_repository::PoloRepository};
+use crate::{value_objects::Point};
 
 //#[tauri::command]
 //fn ipc_message(message: IpcMessage) -> IpcMessage {
@@ -60,15 +60,15 @@ fn main() {
 
     let polo_db = polodb_core::Database::open_file("testdata/polo/umlboard.polo").unwrap();
 
-    let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
-    // let classifier_repository = PoloRepository::<Classifier>::new(&polo_db);
+    // let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
+    let classifier_repository = polo_repository::PoloRepository::<Classifier>::new(&polo_db);
     let classifier_service = ClassifierService::new(&classifier_repository);
     let mut classifiers = classifier_service.load_classifiers();
     if classifiers.len() < 2 {
         classifier_service.create_new_classifier("new class");
         classifiers = classifier_service.load_classifiers();
     }
-    let id = &classifiers[0].id;
+    let id = &classifiers[0]._id;
     classifier_service.update_classifier_name(&id, "changed name44");
     classifiers = classifier_service.load_classifiers();
 
