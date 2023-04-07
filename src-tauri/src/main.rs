@@ -9,16 +9,15 @@ use bonsaidb::local::config::{StorageConfiguration, Builder};
 use classifier::Classifier;
 // use data_model::{save_classifier_polo, get_classifiers};
 use repository::Repository;
+use surrealdb::kvs::Datastore;
 
 mod classifier_service;
 mod action_handler;
-mod data_model;
 mod classifier;
 mod value_objects;
 mod entity;
 mod bonsai_repository;
 mod repository;
-mod polo_repository;
 
 use std::{string::String, collections::HashMap, path::{Path, PathBuf}};
 // use bonsaidb::{local::{Database, config::{StorageConfiguration, Builder}, Storage}, core::connection::StorageConnection};
@@ -48,29 +47,30 @@ use crate::{value_objects::Point};
     //     action: response
     // }
 //}
-
-fn main() {
+#[tokio::main]
+async fn main() {
 
     // DB test:
     // 1. read all elements from the DB
     // 2. if there is no element, create a new one
 
-    let bonsai_db = bonsaidb::local::Database::open::<Classifier>(
-        StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).unwrap();
+    let bonsai_db = bonsaidb::local::AsyncDatabase::open::<Classifier>(
+        StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).await.unwrap();
+    // let bonsai_db = bonsaidb::local::Database::open::<Classifier>(
+    //     StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).unwrap();
 
-    let polo_db = polodb_core::Database::open_file("testdata/polo/umlboard.polo").unwrap();
+    // let surrealDb = Datastore::new("testdata/surreal/umlboard.db");
 
-    // let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
-    let classifier_repository = polo_repository::PoloRepository::<Classifier>::new(&polo_db);
+    let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
     let classifier_service = ClassifierService::new(&classifier_repository);
-    let mut classifiers = classifier_service.load_classifiers();
+    let mut classifiers = classifier_service.load_classifiers().await;
     if classifiers.len() < 2 {
-        classifier_service.create_new_classifier("new class");
-        classifiers = classifier_service.load_classifiers();
+        classifier_service.create_new_classifier("new class").await;
+        classifiers = classifier_service.load_classifiers().await;
     }
     let id = &classifiers[0]._id;
-    classifier_service.update_classifier_name(&id, "changed name44");
-    classifiers = classifier_service.load_classifiers();
+    classifier_service.update_classifier_name(&id, "changed name44").await;
+    classifiers = classifier_service.load_classifiers().await;
 
     print!("{:?}", classifiers);
     

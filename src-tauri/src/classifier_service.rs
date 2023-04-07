@@ -38,20 +38,27 @@ impl<'a> ClassifierService<'a> {
         Self { repository: classifier_repository } 
     }
 
-    pub fn load_classifiers(&self) -> Vec<Classifier> {
-        self.repository.query_all()
+    pub async fn load_classifiers(&self) -> Vec<Classifier> {
+        let classifiers = self.repository.query_all().await;
+        classifiers
     }
 
-    pub fn create_new_classifier(&self, new_name: &str) -> Classifier { // TODO: use repository error
+    pub async fn create_new_classifier(&self, new_name: &str) -> Classifier { // TODO: use repository error
         let id = uuid::Uuid::new_v4().to_string();
-        self.repository.insert(Classifier{_id: id, name: new_name.to_string(), is_interface: false, ..Default::default()})
+        let new_classifier = self.repository.insert(Classifier{
+            _id: id, 
+            name: new_name.to_string(), 
+            is_interface: false, 
+            ..Default::default()
+        }).await;
+        new_classifier
     }
     
-    pub fn update_classifier_name(&self, id: &str, new_name: &str) -> Classifier {
-        let mut classifier = self.repository.query_by_id(id).unwrap();
+    pub async fn update_classifier_name(&self, id: &str, new_name: &str) -> Classifier {
+        let mut classifier = self.repository.query_by_id(id).await.unwrap();
         classifier.name = new_name.to_string();
         let id = classifier._id.to_owned();
-        let updated = self.repository.edit(&id, classifier).unwrap();
+        let updated = self.repository.edit(&id, classifier).await.unwrap();
         updated
     }
 
