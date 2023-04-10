@@ -40,7 +40,7 @@ impl <'a, TData> Repository<TData> for BonsaiRepository<'a, TData>
         result_entities
     }
 
-    async fn insert(&self, data: TData) -> TData {
+    async fn insert(&self, data: TData, id: &str) -> TData {
         let new_document = data.push_into_async(self.db).await.unwrap();
         new_document.contents
     }

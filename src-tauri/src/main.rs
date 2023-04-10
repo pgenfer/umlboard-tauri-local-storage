@@ -5,11 +5,12 @@
 
 use action_handler::ActionHandler;
 use bonsai_repository::BonsaiRepository;
+use surreal_repository::SurrealRepository;
 use bonsaidb::local::config::{StorageConfiguration, Builder};
 use classifier::Classifier;
 // use data_model::{save_classifier_polo, get_classifiers};
 use repository::Repository;
-use surrealdb::kvs::Datastore;
+use surrealdb::{kvs::Datastore, Surreal, engine::local::File};
 
 mod classifier_service;
 mod action_handler;
@@ -17,6 +18,7 @@ mod classifier;
 mod value_objects;
 mod entity;
 mod bonsai_repository;
+mod surreal_repository;
 mod repository;
 
 use std::{string::String, collections::HashMap, path::{Path, PathBuf}};
@@ -59,9 +61,11 @@ async fn main() {
     // let bonsai_db = bonsaidb::local::Database::open::<Classifier>(
     //     StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).unwrap();
 
-    // let surrealDb = Datastore::new("testdata/surreal/umlboard.db");
+    let surreal_db = Surreal::new::<File>("testdata/surreal/umlboard.db").await.unwrap();
+    surreal_db.use_ns("test").use_db("test").await.unwrap();
 
-    let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
+    // let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
+    let classifier_repository = SurrealRepository::<Classifier>::new(&surreal_db);
     let classifier_service = ClassifierService::new(&classifier_repository);
     let mut classifiers = classifier_service.load_classifiers().await;
     if classifiers.len() < 2 {

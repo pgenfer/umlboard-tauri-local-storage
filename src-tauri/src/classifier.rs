@@ -17,6 +17,9 @@ use crate::{value_objects::{Point, Dimension}};
     primary_key = String, 
     natural_id = |classifier: &Classifier| Some(classifier._id.clone())
 )]
+
+// problem that we have is that BonsaiDB stores ids in header, while surrealDB stores id separately.
+// Therefore, we should use a separate Record struct to receive the id
 pub struct Classifier {
     pub _id: String,
     pub name: String,
