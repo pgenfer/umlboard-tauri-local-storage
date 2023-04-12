@@ -58,7 +58,7 @@ impl<'a> ClassifierService<'a> {
         let mut classifier = self.repository.query_by_id(id).await.unwrap();
         classifier.name = new_name.to_string();
         let id = classifier._id.to_owned();
-        let updated = self.repository.edit(&id, classifier).await.unwrap();
+        let updated = self.repository.edit(&id, classifier).await;
         updated
     }
 

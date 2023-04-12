@@ -8,9 +8,7 @@ use bonsai_repository::BonsaiRepository;
 use surreal_repository::SurrealRepository;
 use bonsaidb::local::config::{StorageConfiguration, Builder};
 use classifier::Classifier;
-// use data_model::{save_classifier_polo, get_classifiers};
-use repository::Repository;
-use surrealdb::{kvs::Datastore, Surreal, engine::local::File};
+use surrealdb::{Surreal, engine::local::File};
 
 mod classifier_service;
 mod action_handler;
@@ -28,8 +26,6 @@ use serde_json::{Value};
 use std::string::ToString;
 
 use classifier_service::ClassifierService;
-
-use crate::{value_objects::Point};
 
 //#[tauri::command]
 //fn ipc_message(message: IpcMessage) -> IpcMessage {
@@ -52,21 +48,16 @@ use crate::{value_objects::Point};
 #[tokio::main]
 async fn main() {
 
-    // DB test:
-    // 1. read all elements from the DB
-    // 2. if there is no element, create a new one
-
-    let bonsai_db = bonsaidb::local::AsyncDatabase::open::<Classifier>(
-        StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).await.unwrap();
-    // let bonsai_db = bonsaidb::local::Database::open::<Classifier>(
-    //     StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).unwrap();
-
-    let surreal_db = Surreal::new::<File>("testdata/surreal/umlboard.db").await.unwrap();
-    surreal_db.use_ns("test").use_db("test").await.unwrap();
-
+    // let bonsai_db = bonsaidb::local::AsyncDatabase::open::<Classifier>(
+    //     StorageConfiguration::new("testdata/bonsai/umlboard.bonsaidb")).await.unwrap();
     // let classifier_repository = BonsaiRepository::<Classifier>::new(&bonsai_db);
-    let classifier_repository = SurrealRepository::<Classifier>::new(&surreal_db);
+    
+    let surreal_db = Surreal::new::<File>("testdata/surreal/umlboard.db").await.unwrap();
+    surreal_db.use_ns("umlboard_namespace").use_db("umlboard_database").await.unwrap();
+    let classifier_repository = SurrealRepository::<Classifier>::new(&surreal_db, "classifiers");
+
     let classifier_service = ClassifierService::new(&classifier_repository);
+    
     let mut classifiers = classifier_service.load_classifiers().await;
     if classifiers.len() < 2 {
         classifier_service.create_new_classifier("new class").await;
