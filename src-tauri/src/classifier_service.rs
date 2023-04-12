@@ -46,18 +46,19 @@ impl<'a> ClassifierService<'a> {
     pub async fn create_new_classifier(&self, new_name: &str) -> Classifier { // TODO: use repository error
         let id = uuid::Uuid::new_v4().to_string();
         let new_classifier = self.repository.insert(Classifier{
-            _id: id.clone(), 
+            _id: id.to_string(), 
             name: new_name.to_string(), 
             is_interface: false, 
             ..Default::default()
-        }, &id.clone()).await;
+        }, &id).await;
         new_classifier
     }
     
     pub async fn update_classifier_name(&self, id: &str, new_name: &str) -> Classifier {
         let mut classifier = self.repository.query_by_id(id).await.unwrap();
         classifier.name = new_name.to_string();
-        let id = classifier._id.to_owned();
+        // a bit ugly, but we need to copy the id because "edit" owns the containing struct
+        let id = classifier._id.clone();
         let updated = self.repository.edit(&id, classifier).await;
         updated
     }
