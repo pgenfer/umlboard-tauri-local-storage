@@ -46,7 +46,7 @@ impl<'a> ClassifierService<'a> {
     pub async fn create_new_classifier(&self, new_name: &str) -> Classifier { // TODO: use repository error
         let id = uuid::Uuid::new_v4().to_string();
         let new_classifier = self.repository.insert(Classifier{
-            _id: id.to_string(), 
+            _id: id.clone(), 
             name: new_name.to_string(), 
             is_interface: false, 
             ..Default::default()
