@@ -5,14 +5,14 @@ use surrealdb::{Surreal, engine::local::Db};
 
 use crate::{repository::Repository};
 
-pub struct SurrealRepository<'a, TData> {
-    db: &'a Surreal<Db>,
+pub struct SurrealRepository<TData> {
+    db: Box<Surreal<Db>>,
     phantom: PhantomData<TData>,
     table_name: &'static str
 }
 
-impl <'a, TData> SurrealRepository<'a, TData> {
-    pub fn new(db: &'a Surreal<Db>, table_name: &'static str) -> Self { Self { 
+impl <'a, TData> SurrealRepository<TData> {
+    pub fn new(db: Box<Surreal<Db>>, table_name: &'static str) -> Self { Self { 
         db, 
         phantom: PhantomData, 
         table_name 
@@ -20,7 +20,7 @@ impl <'a, TData> SurrealRepository<'a, TData> {
 }
 
 #[async_trait]
-impl <'a, TData> Repository<TData> for SurrealRepository<'a, TData> 
+impl <TData> Repository<TData> for SurrealRepository<TData> 
 where TData: std::marker::Sync + std::marker::Send + DeserializeOwned + Serialize {
     
     async fn query_all(&self) -> Vec<TData> {
