@@ -5437,6 +5437,7 @@ version = "0.0.0"
 dependencies = [
  "async-trait",
  "bonsaidb",
+ "futures",
  "serde",
  "serde_json",
  "strum 0.24.1",

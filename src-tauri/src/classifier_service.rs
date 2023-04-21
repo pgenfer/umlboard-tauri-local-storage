@@ -1,14 +1,17 @@
+use async_trait::async_trait;
 use serde::{Serialize, Deserialize};
+use serde_json::Value;
 use strum_macros::Display;
 use ts_rs::TS;
 
-use crate::{repository::Repository, classifier::Classifier};
+use crate::{repository::Repository, classifier::Classifier, action_handler::{ActionHandler, CLASSIFIER_DOMAIN, ActionDispatcher}};
 
 #[derive(TS, Serialize, Deserialize)]
 #[ts(export, rename_all="camelCase")]
 #[ts(export_to = "../src/bindings/edit-name-dto.ts")]
 #[serde(rename_all(deserialize="camelCase", serialize="camelCase"))]
 pub struct EditNameDto {
+    pub id: String,
     pub new_name: String
 }
 
@@ -17,7 +20,7 @@ pub struct EditNameDto {
 #[strum(serialize_all = "camelCase")]
 pub enum ClassifierAction {
     RenameClassifier(EditNameDto),
-    CancelClassifierRename,
+    CancelClassifierRename { id: String },
     ClassifierRenamed(EditNameDto),
     ClassifierRenameCanceled(EditNameDto),
     ClassifierRenameError
@@ -46,6 +49,10 @@ impl<'a> ClassifierService {
         classifiers
     }
 
+    pub async fn get_by_id(&self, id: &str) -> Classifier {
+        self.repository.query_by_id(id).await.unwrap()
+    }
+
     pub async fn create_new_classifier(&self, new_name: &str) -> Classifier {
         let id = uuid::Uuid::new_v4().to_string();
         let new_classifier = self.repository.insert(Classifier{
@@ -64,5 +71,45 @@ impl<'a> ClassifierService {
         let id = classifier._id.clone();
         let updated = self.repository.edit(&id, classifier).await;
         updated
+    }
+}
+
+#[async_trait]
+impl ActionDispatcher for ClassifierService {
+    async fn dispatch_action(&self, domain: String, action: Value) ->  Value {
+        if domain == CLASSIFIER_DOMAIN {
+            ActionHandler::<ClassifierAction>::convert_and_handle(self, action).await
+        } else {
+            ActionHandler::<ApplicationAction>::convert_and_handle(self, action).await
+        }
+    }
+}
+
+#[async_trait]
+impl ActionHandler<ClassifierAction> for ClassifierService {
+    async fn handle_action(&self, action: ClassifierAction) -> ClassifierAction {
+        let response = match action {
+            ClassifierAction::RenameClassifier(data) => {
+                let classifier = self.update_classifier_name(&data.id, &data.new_name).await;
+                ClassifierAction::ClassifierRenamed(
+                    EditNameDto{ id: classifier._id, new_name: classifier.name}
+                )
+            },
+            ClassifierAction::CancelClassifierRename{id} => {
+                let classifier = self.get_by_id(&id).await;
+                ClassifierAction::ClassifierRenameCanceled(
+                    EditNameDto { id, new_name: String::from("Old Classname") }
+                )
+            },
+            _ => ClassifierAction::ClassifierRenameError
+        };
+        return response;
+    }
+}
+
+#[async_trait]
+impl ActionHandler<ApplicationAction> for ClassifierService {
+    async fn handle_action(&self, action: ApplicationAction) -> ApplicationAction {
+        panic!();
     }
 }
