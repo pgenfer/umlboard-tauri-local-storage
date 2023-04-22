@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { EditNameDto } from "./bindings/edit-name-dto";
+import { classifiersLoaded } from "./app.redux";
 
 type State = {
     currentName: string,
@@ -7,7 +8,7 @@ type State = {
 }
 
 const initialState: State = {
-    currentName: 'Old Classname',
+    currentName: '',
     editState: 'none'
 }
 
@@ -35,6 +36,15 @@ const classifierSlice = createSlice({
             state.currentName = action.payload.newName;
             state.editState = 'canceled';
         }
+    }, 
+    extraReducers: builder => {
+        builder.addCase(classifiersLoaded, (state, action) => {
+            if (action.payload.length > 0) {
+                state.currentName = action.payload[0].name;
+            } else {
+                state.currentName = "no classifier loaded";
+            }
+        });
     }
 });
 

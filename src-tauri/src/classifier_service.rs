@@ -1,38 +1,6 @@
 use async_trait::async_trait;
-use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use strum_macros::Display;
-use ts_rs::TS;
-
-use crate::{repository::Repository, classifier::Classifier, action_handler::{ActionHandler, CLASSIFIER_DOMAIN, ActionDispatcher}};
-
-#[derive(TS, Serialize, Deserialize)]
-#[ts(export, rename_all="camelCase")]
-#[ts(export_to = "../src/bindings/edit-name-dto.ts")]
-#[serde(rename_all(deserialize="camelCase", serialize="camelCase"))]
-pub struct EditNameDto {
-    pub id: String,
-    pub new_name: String
-}
-
-#[derive(Serialize, Deserialize, Display)]
-#[serde(rename_all(serialize="camelCase", deserialize="camelCase"), tag = "type", content = "payload")]
-#[strum(serialize_all = "camelCase")]
-pub enum ClassifierAction {
-    RenameClassifier(EditNameDto),
-    CancelClassifierRename { id: String },
-    ClassifierRenamed(EditNameDto),
-    ClassifierRenameCanceled(EditNameDto),
-    ClassifierRenameError
-}
-
-#[derive(Serialize, Deserialize, Display)]
-pub enum ApplicationAction {
-    ClassiffiersLoaded
-}
-
-
-pub const APPLICATION_DOMAIN: &str = "application";
+use crate::{repository::Repository, classifier::Classifier, action_handler::{ActionHandler, ActionDispatcher}, actions::{classifier_action::{CLASSIFIER_DOMAIN, ClassifierAction, EditNameDto}, application_action::{ApplicationAction, ClassifierDto}}};
 
 pub struct ClassifierService {
     repository : Box<dyn Repository<Classifier> + Send + Sync>
@@ -98,7 +66,7 @@ impl ActionHandler<ClassifierAction> for ClassifierService {
             ClassifierAction::CancelClassifierRename{id} => {
                 let classifier = self.get_by_id(&id).await;
                 ClassifierAction::ClassifierRenameCanceled(
-                    EditNameDto { id, new_name: String::from("Old Classname") }
+                    EditNameDto { id, new_name: classifier.name }
                 )
             },
             _ => ClassifierAction::ClassifierRenameError
@@ -110,6 +78,24 @@ impl ActionHandler<ClassifierAction> for ClassifierService {
 #[async_trait]
 impl ActionHandler<ApplicationAction> for ClassifierService {
     async fn handle_action(&self, action: ApplicationAction) -> ApplicationAction {
-        panic!();
+        let response = match action {
+            ApplicationAction::ApplicationReady => {
+                // check if there is already a classifier, if not, create one
+                let mut classifiers = self.load_classifiers().await;
+                if classifiers.len() == 0 {
+                    let new_classifier = self.create_new_classifier("new classifier").await;
+                    classifiers.push(new_classifier);
+                }
+                // convert entities to DTOs and return them
+                ApplicationAction::ClassifiersLoaded(
+                    classifiers
+                        .into_iter()
+                        .map(|c| ClassifierDto{id: c._id, name: c.name})
+                        .collect()
+                )
+            },
+            _ => ApplicationAction::ApplicationLoadError
+        };
+        return response;
     }
 }

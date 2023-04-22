@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { TypedUseSelectorHook, useSelector } from 'react-redux';
 import { classifierReducer } from './edit-name.redux';
+import { appReducer } from './app.redux';
 
 export const store = configureStore({
     reducer: {
-        classifier: classifierReducer
+        classifier: classifierReducer,
+        application: appReducer
     }
   });
 

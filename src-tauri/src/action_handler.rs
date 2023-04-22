@@ -3,7 +3,6 @@ use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 
 
-pub const CLASSIFIER_DOMAIN: &str = "classifier";
 
 #[async_trait]
 pub trait ActionDispatcher {

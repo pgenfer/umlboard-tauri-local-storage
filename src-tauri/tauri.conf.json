@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "umlboard-action-prototype",
+    "productName": "umlboard-local-storagenpm-prototype",
     "version": "0.0.0"
   },
   "tauri": {

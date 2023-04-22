@@ -4,6 +4,9 @@ import { useDispatch } from "react-redux";
 import { useRootSelector } from "./store";
 import { invoke } from "@tauri-apps/api";
 import { cancelClassifierRename, renameClassifier, renamingClassifier } from "./edit-name.redux";
+import { useEffect } from "react";
+import { applicationReady } from "./app.redux";
+import { selectFirstClassifier } from "./classifier-selector";
 
 type IpcMessage = {
   domain: string,
@@ -14,6 +17,7 @@ function App() {
   
   const name = useRootSelector(state => state.classifier.currentName);
   const editState = useRootSelector(state => state.classifier.editState);
+  const currentClassifier = useRootSelector(selectFirstClassifier);
   const dispatch = useDispatch();
 
   async function sendMessage<T>(action: {type: string, payload: T}) {
@@ -32,6 +36,14 @@ function App() {
     dispatch(responseAction);
   }
 
+  useEffect(() => {
+    console.log('application initialized');
+    const sendApplicationReady = async () => {
+      await sendMessage(applicationReady());
+    }
+    sendApplicationReady();
+  }, []);
+
   return (
     <div className="container">
       <h1>Welcome to Tauri!</h1>
@@ -48,18 +60,19 @@ function App() {
         </a>
       </div>
 
-      <p>This is a small concept app to implement Redux-based IPC messaging.<br/>Change the name and press a button to confirm or cancel the change.</p>
+      <p>This is a small concept app to implement Redux-based IPC messaging.<br/>
+      Change the name and press a button to confirm or cancel the change.</p>
       <br/>
       <div className="row">
-        <div>
+        {currentClassifier && <div>
           <input
             id="greet-input"
             value={name}
-            onChange={(e) => dispatch(renamingClassifier({newName: e.target.value}))}
+            onChange={(e) => dispatch(renamingClassifier({newName: e.target.value, id: currentClassifier.id}))}
             placeholder="Enter a name..."
           />
           <button type="button" onClick={async () => {
-            await sendMessage(renameClassifier({newName: name}));
+            await sendMessage(renameClassifier({newName: name, id: currentClassifier.id}));
           }}>
             Edit
           </button>
@@ -68,7 +81,7 @@ function App() {
           }}>
             Cancel
           </button>
-        </div>
+        </div>}
       </div>
       {editState !== 'none' && <p className={editState === 'successful' ? 'change-successful' : 'change-canceled'}>
         {editState === 'successful' ? 'Name was changed' : 'Editing was canceled.'}

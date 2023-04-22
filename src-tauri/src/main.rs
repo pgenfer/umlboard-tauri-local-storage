@@ -3,10 +3,10 @@
     windows_subsystem = "windows"
 )]
 
-use action_handler::{CLASSIFIER_DOMAIN, ActionDispatcher};
+use action_handler::{ActionDispatcher};
 use surreal_repository::SurrealRepository;
 use surrealdb::{Surreal, engine::local::File};
-use tauri::{State};
+use tauri::{State, Manager};
 
 mod classifier_service;
 mod classifier;
@@ -16,13 +16,15 @@ mod bonsai_repository;
 mod surreal_repository;
 mod repository;
 mod action_handler;
+mod actions;
+
 
 use std::{string::String, collections::HashMap, sync::Arc};
 use serde::{Serialize, Deserialize};
 use serde_json::{Value};
 use std::string::ToString;
 
-use classifier_service::{ClassifierService, APPLICATION_DOMAIN};
+use classifier_service::{ClassifierService};
 
 // async stateful commands must return Result
 // https://github.com/tauri-apps/tauri/discussions/4317
@@ -42,10 +44,20 @@ async fn main() {
     let context = ApplicationContext::new().await;
     // setup and start Tauru
     tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(debug_assertions)] // only include this code on debug builds
+            {
+                let window = app.get_window("main").unwrap();
+                window.open_devtools();
+                window.close_devtools();
+            }
+            Ok(())
+        })
         .manage(context)
         .invoke_handler(tauri::generate_handler![ipc_message])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+        
 }
 
 #[derive(Deserialize, Serialize)]
@@ -65,8 +77,8 @@ impl ApplicationContext {
         let repository = Box::new(SurrealRepository::new(Box::new(surreal_db), "classifiers"));
         let service = Arc::new(ClassifierService::new(repository));
         let mut action_dispatchers: HashMap<String, Arc<dyn ActionDispatcher + Sync + Send>> = HashMap::new();
-        action_dispatchers.insert(CLASSIFIER_DOMAIN.to_string(), service.clone());
-        action_dispatchers.insert(APPLICATION_DOMAIN.to_string(), service.clone());
+        action_dispatchers.insert(actions::classifier_action::CLASSIFIER_DOMAIN.to_string(), service.clone());
+        action_dispatchers.insert(actions::application_action::APPLICATION_DOMAIN.to_string(), service.clone());
         Self { action_dispatchers }
     }
 }
