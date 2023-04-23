@@ -5,11 +5,10 @@ use crate::{repository::Repository, classifier::Classifier, action_handler::{Act
 pub struct ClassifierService {
     repository : Box<dyn Repository<Classifier> + Send + Sync>
 }
-impl<'a> ClassifierService {
+impl ClassifierService {
     
-    pub fn new(
-    classifier_repository: Box<dyn Repository<Classifier> + Send + Sync>) -> Self { 
-        Self { repository: classifier_repository }
+    pub fn new(repository: Box<dyn Repository<Classifier> + Send + Sync>) -> Self { 
+        Self { repository }
     }
 
     pub async fn load_classifiers(&self) -> Vec<Classifier> {
