@@ -60,7 +60,7 @@ function App() {
         </a>
       </div>
 
-      <p>This is a small concept app to implement Redux-based IPC messaging.<br/>
+      <p>This is a small concept app to demonstrate state persistence with Tauri/Rust.<br/>
       Change the name and press a button to confirm or cancel the change.</p>
       <br/>
       <div className="row">
