@@ -2,13 +2,14 @@ use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 
-
-
+/// Trait used to send incoming actions
+/// to the correct action handler
 #[async_trait]
 pub trait ActionDispatcher {
     async fn dispatch_action(&self, domain: String, action: Value) -> Value;
 }
 
+/// trait must be implemented to handle actions of a specific domain
 #[async_trait]
 pub trait ActionHandler<T: DeserializeOwned + Serialize + std::fmt::Display + Send> {
     async fn convert_and_handle(&self, action: Value) -> Value {

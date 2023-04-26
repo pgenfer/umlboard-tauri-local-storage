@@ -19,7 +19,7 @@ use crate::{value_objects::{Point, Dimension}};
 )]
 
 // problem that we have is that BonsaiDB stores ids in header, while surrealDB stores id separately.
-// Therefore, we should use a separate Record struct to receive the id
+// therefore, we manage the identify ourselves via the _id field.
 pub struct Classifier {
     pub _id: String,
     pub name: String,

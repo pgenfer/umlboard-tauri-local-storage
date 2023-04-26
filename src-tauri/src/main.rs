@@ -11,7 +11,6 @@ use tauri::{State, Manager};
 mod classifier_service;
 mod classifier;
 mod value_objects;
-mod entity;
 mod bonsai_repository;
 mod surreal_repository;
 mod repository;
