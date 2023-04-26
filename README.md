@@ -1,6 +1,13 @@
 # Moving from Electron to Tauri Part 2 - Local Data Storage
 
-TODO: write
+This small sample application is the [second part](https://www.umlboard.com/blog/moving-from-electron-to-tauri-2/) of a blog series investigating how some of [UMLBoard's](https://www.umlboard.com) core concepts can be ported to [Tauri](https://tauri.app/). 
+UMLBoard uses a layered architecture with a repository layer to decouple the application logic from the database.
+
+![UMLBoard's Architecture consits of three layers. The application layer uses a repository to access the database.](./concepts/layered-architecture.png)
+
+In this project, we're investigating how we could implement such a layered architecture with Tauri and Rust by using two different database backends,  [SurrealDB](https://surrealdb.com/) and [BonsaiDB](https://github.com/khonsulabs/bonsaidb).
+
+The project uses the React+Tauri+Vite template with additional dependencies to the [Redux Toolkit](https://redux-toolkit.js.org/).
 
 ## Building the Sample Application
 
